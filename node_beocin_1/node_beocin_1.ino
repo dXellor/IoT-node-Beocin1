@@ -21,9 +21,13 @@ const int water_pump = D3;
 long current_time;
 long last_measure = 0;
 long pump_timer = 0;
+long timer_2 = 0;
 bool pump_switch = false;
 int moist_value; 
 double temp_value, pressure_value;
+static char pub_moist_value[4];
+static char pub_temp_value[6];
+static char pub_pressure_value[8];
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
@@ -132,7 +136,7 @@ void loop() {
 
   current_time = millis();
 
-  if(current_time - last_measure > 10000){
+  if(current_time - last_measure > 5000){
     last_measure = current_time; 
 
     moist_value = readMoisturePercentage();
@@ -157,22 +161,23 @@ void loop() {
     Serial.println(" mb");
 
     //MQTT publish
-    static char pub_moist_value[4];
-    static char pub_temp_value[6];
-    static char pub_pressure_value[8];
-    
     dtostrf(moist_value, 4, 0, pub_moist_value);
     dtostrf(temp_value, 3, 2, pub_temp_value);
     dtostrf(pressure_value, 3, 2, pub_pressure_value);
-    
+
+    //Publish moist_value on every measure
     client.publish("/node_beocin1/moisture", pub_moist_value);
-    client.publish("/node_beocin1/temperature", pub_temp_value);
-    client.publish("/node_beocin1/pressure", pub_pressure_value);
   }
 
   if(current_time - pump_timer > 3000 && pump_switch){
     digitalWrite(water_pump, LOW);
     pump_switch = false;
+  }
+
+  if(current_time - timer_2 > 1800000){
+    client.publish("/node_beocin1/temperature", pub_temp_value);
+    client.publish("/node_beocin1/pressure", pub_pressure_value);
+    timer_2 = current_time;  
   }
 
 }
