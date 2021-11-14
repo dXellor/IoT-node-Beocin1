@@ -174,7 +174,7 @@ void loop() {
     pump_switch = false;
   }
 
-  if(current_time - timer_2 > 1800000){
+  if(current_time - timer_2 > 1800000 || timer_2 == 0){
     client.publish("/node_beocin1/temperature", pub_temp_value);
     client.publish("/node_beocin1/pressure", pub_pressure_value);
     timer_2 = current_time;  
